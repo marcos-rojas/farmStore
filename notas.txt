@@ -1,0 +1,68 @@
+El proyecto inicia como siempre:
+- creo directorio
+- uso: npm init -y, npm install express mongoose ejs method-override nodemon
+- Luego realizo la configuración inicial en index.js
+    const express = require('express');
+    const app = express();
+    app.listen(PORT, function () {console.log(`Connected to port ${PORT}`);})
+- Definimos los middleware para acceder a body, usar carpeta views (con ejs)
+  y carpeta models (en caso de mongoose)
+
+  ACCESO A BODY (CUANDO HACEMOS POST, PUT) depende de si es URL, JSON, etc
+    app.use(express.urlencoded({ extended: true }));
+
+  USO DE METODOS POST/DELETE/PUT
+    const methodOverride = require('method-override')
+    app.use(methodOverride('_method'));
+
+  ACCESO A VIEWS ejs
+    const path = require('path');
+    app.set('views', path.join(__dirname, 'views'))
+    app.set('view engine', 'ejs');
+  
+  CONFIGURACION/CONEXION MONGOOSE (ODM de MongoDB)
+    const mongoose = require('mongoose');
+    const Product = require('./models/product');
+
+    mongoose.connect("mongodb://localhost:27017/darmStand", { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => {
+        console.log('database connection open');
+    })
+    .catch(err => {
+        console.log('Oh no mongo error');
+        console.log(err);
+    })
+***USO DE MONGOOSE**
+    PARA USAR DEBO IMPORTAR Y CONECTAR A MONGODB COMO EL CODIGO DE ARRIBA
+    const mongoose = require('mongoose');
+    const Product = require('./models/product');
+
+
+    CREACION DE MODELO A PARTIR DE ESQUEMA (revisar la carpeta product)
+const productSchema = new mongoose.Schema({
+	name: {type: String, required: true},
+	price: {type: Number, required: true, min:[0, 'Precio imposible']},
+	category: {
+        type: String,
+        lowercase: true,
+        enum: ['fruit', 'vegetable', 'dairy'],
+        default:['fruit']
+    }
+});
+  Creación de la tabla / colección
+    const Product = mongoose.model('Product', productSchema);
+
+   Inserción a partir de un array de objetos
+    {
+        name: 'Fairy Eggplant',
+        price: 1.00,
+        category: 'vegetable'
+    }
+
+Product.insertMany(seedProducts)
+    .then(res => {
+        console.log(res)
+    })
+    .catch(e => {
+        console.log(e)
+    })
